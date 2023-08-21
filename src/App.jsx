@@ -3,57 +3,99 @@ import { supabase } from "./lib/helper/supabaseClient";
 
 const App = () => {
   const [user, setUser] = useState(null);
-
+  const [userName, setUserName] = useState("");
+  const [Loading, setLoading] = useState(false);
   const handleLogin = async () => {
-    const { user, session, error } = await supabase.auth.signInWithOAuth({
-      provider: "github",
-    });
-    console.log(user);
-    if (error) {
-      console.error("Error signing in:", error);
-    } else {
-      setUser(user);
-    }
+    setLoading(true);
+    let { data: Users, error } = await supabase.from("Users").select("*");
+
+    setUser(Users);
+    setLoading(false);
+  };
+  const addEntries = async (e) => {
+    e.preventDefault();
+
+    const { data, error } = await supabase
+      .from("Users")
+      .insert([{ Username: userName }])
+      .select();
+
+    console.log("addEntries", data, error);
   };
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-
-    if (error) {
-      console.error("Error signing out:", error);
-    } else {
-      setUser(null);
-    }
+  const UpdateUsers = async (id) => {
+    const { data, error } = await supabase
+      .from("Users")
+      .update({ Username: userName }) // Update with the new value
+      .eq("id", id)
+      .select();
+    console.log("updateUsers", data, error);
   };
 
-  useEffect(() => {
-    const session = supabase.auth.getSession();
-
-    if (session) {
-      setUser(session.user);
-    }
-  }, []);
+  const deleteUser = async (id) => {
+    const { data, error } = await supabase.from("Users").delete().eq("id", id);
+    console.log("deleteUser", data, error);
+  };
 
   return (
     <div>
+      {Loading ? <>the data is loading please wait!!</> : ""}
+
       {user ? (
-        <div>
-          <p>Welcome, {user.user_metadata.full_name}!</p>
-          <button
-            onClick={handleLogout}
-            className="bg-orange-600 text-white p-2 m-5"
-          >
-            Log Out
-          </button>
-        </div>
-      ) : (
+        <table>
+          <tr>
+            <th>id</th>
+            <th>UserName</th>
+            <th>Update</th>
+            <th>Delete</th>
+          </tr>
+          {user.map((res) => (
+            <tr>
+              <td>{res.id}</td>
+              <td>{res.Username}</td>
+              <td>
+                <button
+                  className="bg-green-600 p-2 text-white"
+                  onClick={() => UpdateUsers(res.id)}
+                >
+                  Update{" "}
+                </button>
+              </td>
+              <td>
+                <button
+                  className="bg-red-600 p-2 text-white"
+                  onClick={() => deleteUser(res.id)}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </table>
+      ) : null}
+
+      <form>
+        <input
+          className="border-2 border-black m-3 "
+          type="text"
+          placeholder="UserName"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+        />
         <button
-          onClick={handleLogin}
-          className="bg-blue-600 text-white p-2 m-5"
+          className="bg-orange-500 p-2 text-white rounded-lg"
+          onClick={addEntries}
         >
-          Login With GitHub
+          Add the Entries
         </button>
-      )}
+      </form>
+
+      <button
+        onClick={handleLogin}
+        className="bg-blue-600 text-white p-2 m-5"
+      >
+        Fetch the Data
+      </button>
     </div>
   );
 };
