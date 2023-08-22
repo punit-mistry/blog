@@ -14,13 +14,9 @@ const App = () => {
     const { data: session, error } = await supabase.auth.getUser();
     setUserData(session);
   };
-  // useEffect(async () => {
-  //   async function fetchData() {
-  //     const { data: session, error } = await supabase.auth.getUser();
-  //     console.log(session);
-  //   }
-  //   fetchData();
-  // }, []);
+  useEffect(() => {
+    fetchUser();
+  }, []);
 
   return (
     <>

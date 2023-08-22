@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "./lib/helper/supabaseClient";
 const Signup = () => {
+  const nav = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const [Error, setErrorMessage] = useState("");
   const handleSignIn = async (e) => {
     e.preventDefault();
     console.log("Signin Data ", formData);
@@ -15,6 +17,11 @@ const Signup = () => {
       password: formData.password,
     });
     console.log("Signin Data", data, error);
+    if (data) {
+      nav("/");
+    } else {
+      setErrorMessage(error.message);
+    }
   };
 
   return (
@@ -44,6 +51,7 @@ const Signup = () => {
           {" "}
           Sign In{" "}
         </button>
+        <span className="text-red-600">{Error}</span>
         <span className="hover:text-blue-500 hover:underline text-center ">
           <Link to="/createaccount"> Create a Account</Link>
         </span>
